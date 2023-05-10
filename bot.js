@@ -67,7 +67,7 @@ ${post.score && `\n<b>Score</b>: ${post.score} / 10`}
   const media = [
     {
       type: 'photo',
-      media: imageUrl,
+      media: post.slide1,
       caption: postCaption,
       parse_mode: 'HTML',
     },
