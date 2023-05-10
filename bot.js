@@ -1,4 +1,4 @@
-const { Telegraf } = require('telegraf');
+const {Telegraf} = require('telegraf');
 const axios = require('axios');
 const cheerio = require('cheerio');
 
@@ -11,25 +11,57 @@ bot.command('test', (ctx) => {
   ctx.reply('test pass');
 });
 
-bot.command('css', async (ctx) => {
-  const { data: html } = await axios.get(`${CSS_DESIGN_AWARDS_URL}`);
-  const $ = cheerio.load(html);
-  const $thumbnail = $('.home-wotd__thumbnail a');
-  const href = $thumbnail.attr('href');
-  const pageUrl = href ? `${CSS_DESIGN_AWARDS_URL}${href}` : 'Ссылка не найдена';
+const SCRAPE_CSS_AWARD = async () => {
+  try {
+    const result = {
+      title: "",
+      date: "",
+      src: "",
+      slide1: "",
+      slide2: "",
+      slide3: "",
+      score: '',
+    };
 
-  const { data: pageHtml } = await axios.get(pageUrl);
-  const $$ = cheerio.load(pageHtml);
-  const title = $$('h2.single-website__title').text().trim();
-  const score = $$('div.judges h3.judges__score').first().text().trim();
-  const imageUrl = CSS_DESIGN_AWARDS_URL + $$('div.single-website__thumbnail__wrapper a img').attr('src');
+    console.log('Start Scrape Home Page =>', CSS_DESIGN_AWARDS_URL)
+
+    const {data: html} = await axios.get(CSS_DESIGN_AWARDS_URL);
+    const $ = cheerio.load(html);
+    const $thumbnail = $('.home-wotd__thumbnail a');
+    const href = $thumbnail.attr('href');
+    const pageUrl = href ? `${CSS_DESIGN_AWARDS_URL}${href}` : '';
+
+    console.log('Start Scrape Full Page =>', pageUrl)
+    const {data: pageHtml} = await axios.get(pageUrl);
+    const $$ = cheerio.load(pageHtml);
+    result.title = $$('h2.single-website__title').text().trim() || '';
+    result.score = $$('h3.judges__score').first().text().trim() || '';
+    result.slide1 = CSS_DESIGN_AWARDS_URL + $$('.single-website__thumbnail__wrapper a img').attr('src') || '';
+    result.src = pageUrl;
+
+    console.log('POST to publish: ', result);
+    return result;
+
+  } catch (e) {
+    console.log('Error: ', e);
+  }
+}
+
+SCRAPE_CSS_AWARD();
+
+
+bot.command('css', async (ctx) => {
+
+  const post = await SCRAPE_CSS_AWARD();
 
   const postCaption = `
-    <b><i>DAILY AWARD</i></b>
+<b><i>Site of the Day</i></b>
 
-    <b>Page</b>: ${pageUrl}
-    <b>Title</b>: ${title}
-    <b>SCORE</b>: ${score}
+${post.title && `<b>Title</b>: ${post.title}`}
+${post.date && `<b>Date</b>: ${post.date}`}
+${post.score && `\n<b>Score</b>: ${post.score} / 10`}
+
+<a href="${post.src}">${post.src}</a>
   `;
 
   const media = [
