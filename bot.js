@@ -21,15 +21,15 @@ bot.command('css', async (ctx) => {
   const { data: pageHtml } = await axios.get(pageUrl);
   const $$ = cheerio.load(pageHtml);
   const title = $$('h2.single-website__title').text().trim();
-  const score = $$('div.judges h3.judges__score').first().text().trim();
-  const imageUrl = CSS_DESIGN_AWARDS_URL + $$('div.single-website__thumbnail__wrapper a img').attr('src');
-
+  const score = $$('h3.judges__score').first().text().trim();
+  const imageUrl = 'https://www.cssdesignawards.com/cdasites/2023/202304/20230404001348.jpg'
   const postCaption = `
     <b><i>DAILY AWARD</i></b>
 
-    <b>Page</b>: ${pageUrl}
     <b>Title</b>: ${title}
     <b>SCORE</b>: ${score}
+    <b>Page</b>: ${pageUrl}
+
   `;
 
   const media = [
