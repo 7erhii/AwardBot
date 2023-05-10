@@ -6,6 +6,8 @@ const bot = new Telegraf('6143654890:AAH7T-EdqGm4ElPS85pZPQlctN2nHGoOWcM');
 
 const CSS_DESIGN_AWARDS_URL = 'https://www.cssdesignawards.com';
 
+
+
 const monthNames = [
   "January",
   "February",
@@ -32,8 +34,24 @@ const getDate = () => {
 
 bot.command('test', (ctx) => {
   console.log('test pass');
-  ctx.reply('test pass');
+//   ctx.reply('test pass');
 });
+
+// bot.on('message', async (ctx) => {
+//     const chatId = ctx.message.chat.id;
+//     const isCommand = ctx.message.text && ctx.message.text.startsWith('/');
+//   console.log('test pass');
+
+  
+//     // Check if message is a command and if it was sent in the correct channel
+//     if (isCommand) {
+
+//   console.log('test pass');
+
+//       // Process the command
+//       // ...
+//     }
+//   });
 
 
 const SCRAPE_CSS_AWARD = async () => {
@@ -48,7 +66,7 @@ const SCRAPE_CSS_AWARD = async () => {
       score: '',
     };
 
-    console.log('Start Scrape Home Page =>', CSS_DESIGN_AWARDS_URL)
+    // console.log('Start Scrape Home Page =>', CSS_DESIGN_AWARDS_URL)
 
     const {data: html} = await axios.get(CSS_DESIGN_AWARDS_URL);
     const $ = cheerio.load(html);
@@ -56,13 +74,33 @@ const SCRAPE_CSS_AWARD = async () => {
     const href = $thumbnail.attr('href');
     const pageUrl = href ? `${CSS_DESIGN_AWARDS_URL}${href}` : '';
 
-    console.log('Start Scrape Full Page =>', pageUrl)
+    // console.log('Start Scrape Full Page =>', pageUrl)
     const {data: pageHtml} = await axios.get(pageUrl);
     const $$ = cheerio.load(pageHtml);
     result.title = $$('h2.single-website__title').text().trim() || '';
     result.score = $$('h3.judges__score').first().text().trim() || '';
-    result.slide1 = CSS_DESIGN_AWARDS_URL + $$('.single-website__thumbnail__wrapper a img').attr('src') || '';
-    result.src = pageUrl;
+    const images = $$('.single-website__thumbnail__wrapper a img') ;
+
+    const imagesPreview = [];
+
+
+    console.log("images count: ", images.length);
+    
+    images.each((index, element) => {
+        // imagesPreview.push($(element).attr("src"));
+        // console.log($$(element).attr("src"))
+        const img = CSS_DESIGN_AWARDS_URL + $$(element).attr("src");
+        console.log(img);
+        imagesPreview.push(img);
+      });
+  
+    // result.slide1 = CSS_DESIGN_AWARDS_URL + $$('.single-website__thumbnail__wrapper a img').attr('src') || '';
+    result.slide1 = imagesPreview[0];
+    result.slide2 = imagesPreview[1];
+    result.slide3 = imagesPreview[2];
+
+    result.src = $$(".single-website__thumbnail__wrapper a").first().attr('href') || '';
+    // console.log ($$(".single-website__thumbnail__wrapper a").first())
     result.date = getDate();
 
     console.log('POST to publish: ', result);
@@ -86,6 +124,7 @@ ${post.title && `<b>Title</b>: ${post.title}`}
 ${post.date && `<b>Date</b>: ${post.date}`}
 ${post.score && `\n<b>Score</b>: ${post.score} / 10`}
 
+
 <a href="${post.src}">${post.src}</a>
   `;
 
@@ -96,9 +135,23 @@ ${post.score && `\n<b>Score</b>: ${post.score} / 10`}
       caption: postCaption,
       parse_mode: 'HTML',
     },
+    {
+        type: 'photo',
+        media: post.slide2,
+      },
+      {
+        type: 'photo',
+        media: post.slide3,
+      },
   ];
-
-  await bot.telegram.sendMediaGroup(ctx.chat.id, media);
+  console.log('publish')
+  await bot.telegram.sendMediaGroup(-1001806972643, media);
 });
 
+
 bot.launch();
+
+// bot.launch({
+//     polling: true
+// });
+// bot.startPolling(30, 100);
