@@ -6,10 +6,35 @@ const bot = new Telegraf('6143654890:AAH7T-EdqGm4ElPS85pZPQlctN2nHGoOWcM');
 
 const CSS_DESIGN_AWARDS_URL = 'https://www.cssdesignawards.com';
 
+const monthNames = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+const getDate = () => {
+  const today = new Date();
+  const month = monthNames[today.getMonth()];
+  const day = today.getDate();
+  const year = today.getFullYear();
+  return `${month} ${day}, ${year}`;
+};
+
+
 bot.command('test', (ctx) => {
   console.log('test pass');
   ctx.reply('test pass');
 });
+
 
 const SCRAPE_CSS_AWARD = async () => {
   try {
@@ -38,6 +63,7 @@ const SCRAPE_CSS_AWARD = async () => {
     result.score = $$('h3.judges__score').first().text().trim() || '';
     result.slide1 = CSS_DESIGN_AWARDS_URL + $$('.single-website__thumbnail__wrapper a img').attr('src') || '';
     result.src = pageUrl;
+    result.date = getDate();
 
     console.log('POST to publish: ', result);
     return result;
@@ -48,7 +74,6 @@ const SCRAPE_CSS_AWARD = async () => {
 }
 
 SCRAPE_CSS_AWARD();
-
 
 bot.command('css', async (ctx) => {
 
