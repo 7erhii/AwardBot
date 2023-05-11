@@ -78,6 +78,8 @@ const SCRAPE_CSS_AWARD = async () => {
     const {data: pageHtml} = await axios.get(pageUrl);
     const $$ = cheerio.load(pageHtml);
     result.title = $$('h2.single-website__title').text().trim() || '';
+    result.country = $$('span.single-website__author__location').text().trim() || '';
+
     result.score = $$('h3.judges__score').first().text().trim() || '';
     const images = $$('.single-website__thumbnail__wrapper a img') ;
 
@@ -121,6 +123,8 @@ bot.command('css', async (ctx) => {
 <b><i>Site of the Day</i></b>
 
 ${post.title && `<b>Title</b>: ${post.title}`}
+${post.country && `<b>Coutry</b>: ${post.country}`}
+
 ${post.date && `<b>Date</b>: ${post.date}`}
 ${post.score && `\n<b>Score</b>: ${post.score} / 10`}
 
