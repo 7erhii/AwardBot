@@ -18,7 +18,7 @@ bot.command('test', (ctx) => {
 
 
 // CRON job every day at 13:00
-const postEveryDayJob = new CronJob("0 0 13 * * *", async () => {
+const postEveryDayJob = new CronJob("0 0 19 * * *", async () => {
   await POST_SITE_OF_THE_DAY(bot);
 });
 
